@@ -1232,7 +1232,7 @@ function BiometricLivenessCheckScreen({ onComplete }: { onComplete: () => void }
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 217, 255, 0.4)'
                 }}
               >
-                I've Completed This Action
+                I&apos;ve Completed This Action
               </button>
             )}
           </div>

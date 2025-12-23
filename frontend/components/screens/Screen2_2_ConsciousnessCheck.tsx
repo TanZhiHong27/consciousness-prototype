@@ -85,7 +85,7 @@ export default function Screen2_2_ConsciousnessCheck({ onComplete }: Screen2_2Pr
                 </p>
                 {!gestureComplete && (
                   <Button onClick={handleGestureComplete} fullWidth>
-                    I've Completed the Gesture
+                    I&apos;ve Completed the Gesture
                   </Button>
                 )}
               </div>
