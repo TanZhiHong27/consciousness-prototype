@@ -2,13 +2,16 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 
-type Screen = 'legal-framework' | 'permission' | 'ic-scan' | 'environment-scan' | 'liveness-check' | 'consciousness-check' | 'asset-distribution' | 'executor-selection' | 'review-seal' | 'success-dashboard' | 'ic-locked'
+type Screen = 'legal-framework' | 'permission' | 'ic-scan' | 'verification-method' | 'biometric' | 'face-id' | 'environment-scan' | 'liveness-check' | 'consciousness-check' | 'asset-distribution' | 'document-upload' | 'executor-selection' | 'review-seal' | 'success-dashboard' | 'ic-locked'
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('legal-framework')
   const [selectedLegalFramework, setSelectedLegalFramework] = useState<'muslim' | 'non-muslim' | null>(null)
   const [selectedExecutor, setSelectedExecutor] = useState<'amanah' | 'private' | null>(null)
   const [executorDetails, setExecutorDetails] = useState<{ name: string; ic: string }>({ name: '', ic: '' })
+  const [biometricVerified, setBiometricVerified] = useState(false)
+  const [faceIdVerified, setFaceIdVerified] = useState(false)
+  const [uploadedDocs, setUploadedDocs] = useState<{ [key: string]: boolean }>({})
 
   // Screen 1: Legal Framework Selection
   if (currentScreen === 'legal-framework') {
@@ -35,7 +38,45 @@ export default function Home() {
   if (currentScreen === 'ic-scan') {
     return (
       <ICScanScreen
-        onComplete={() => setCurrentScreen('environment-scan')}
+        onComplete={() => setCurrentScreen('verification-method')}
+      />
+    )
+  }
+
+  // Screen 3.5: Verification Method Selection
+  if (currentScreen === 'verification-method') {
+    return (
+      <VerificationMethodScreen
+        onSelectFingerprint={() => setCurrentScreen('biometric')}
+        onSelectFaceId={() => setCurrentScreen('face-id')}
+      />
+    )
+  }
+
+  // Screen 3.6: Biometric (Fingerprint) Verification
+  if (currentScreen === 'biometric') {
+    return (
+      <BiometricScreen
+        onComplete={() => {
+          setBiometricVerified(true)
+          setCurrentScreen('environment-scan')
+        }}
+        verified={biometricVerified}
+        setVerified={setBiometricVerified}
+      />
+    )
+  }
+
+  // Screen 3.7: Face ID Verification
+  if (currentScreen === 'face-id') {
+    return (
+      <FaceIdScreen
+        onComplete={() => {
+          setFaceIdVerified(true)
+          setCurrentScreen('environment-scan')
+        }}
+        verified={faceIdVerified}
+        setVerified={setFaceIdVerified}
       />
     )
   }
@@ -78,6 +119,17 @@ export default function Home() {
     return (
       <AssetDistributionScreen
         isMuslim={selectedLegalFramework === 'muslim'}
+        onComplete={() => setCurrentScreen('document-upload')}
+      />
+    )
+  }
+
+  // Screen 6.5: Document Upload (Optional)
+  if (currentScreen === 'document-upload') {
+    return (
+      <DocumentUploadScreen
+        uploadedDocs={uploadedDocs}
+        setUploadedDocs={setUploadedDocs}
         onComplete={() => setCurrentScreen('executor-selection')}
       />
     )
@@ -544,6 +596,548 @@ function PermissionScreen({ onAllow, onCancel }: { onAllow: () => void; onCancel
             Allow Secure Access
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Screen 3.5: Verification Method Selection
+function VerificationMethodScreen({ onSelectFingerprint, onSelectFaceId }: { onSelectFingerprint: () => void; onSelectFaceId: () => void }) {
+  return (
+    <div style={{
+      height: '100vh',
+      width: '100vw',
+      background: 'radial-gradient(circle at top, rgba(56,189,248,0.16), transparent 55%), radial-gradient(circle at bottom, rgba(15,23,42,0.9), #020617)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px'
+    }}>
+      <div style={{ maxWidth: '600px', width: '100%', textAlign: 'center' }}>
+        <h2 style={{
+          fontSize: '32px',
+          fontWeight: 700,
+          color: '#ffffff',
+          marginBottom: '12px'
+        }}>
+          Identity Verification
+        </h2>
+        <p style={{
+          fontSize: '18px',
+          color: '#9ca3af',
+          marginBottom: '48px',
+          lineHeight: '1.6'
+        }}>
+          Please choose your preferred verification method to confirm your identity
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* Fingerprint Option */}
+          <button
+            onClick={onSelectFingerprint}
+            style={{
+              backgroundColor: 'rgba(0, 217, 255, 0.1)',
+              border: '2px solid #00d9ff',
+              borderRadius: '16px',
+              padding: '32px',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '24px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(0, 217, 255, 0.2)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(0, 217, 255, 0.1)';
+              e.currentTarget.style.transform = 'none';
+            }}
+          >
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(0, 217, 255, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '48px',
+              flexShrink: 0
+            }}>
+              👆
+            </div>
+            <div style={{ flex: 1 }}>
+              <h3 style={{
+                fontSize: '24px',
+                fontWeight: 700,
+                color: '#ffffff',
+                marginBottom: '8px',
+                marginTop: 0
+              }}>
+                Fingerprint Scan
+              </h3>
+              <p style={{
+                fontSize: '16px',
+                color: '#9ca3af',
+                lineHeight: '1.6',
+                margin: 0
+              }}>
+                Place your thumb on the fingerprint scanner for verification
+              </p>
+            </div>
+            <div style={{ fontSize: '24px', color: '#00d9ff' }}>→</div>
+          </button>
+
+          {/* Face ID Option */}
+          <button
+            onClick={onSelectFaceId}
+            style={{
+              backgroundColor: 'rgba(0, 217, 255, 0.1)',
+              border: '2px solid #00d9ff',
+              borderRadius: '16px',
+              padding: '32px',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.3s ease',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '24px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(0, 217, 255, 0.2)';
+              e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(0, 217, 255, 0.1)';
+              e.currentTarget.style.transform = 'none';
+            }}
+          >
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '12px',
+              backgroundColor: 'rgba(0, 217, 255, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '48px',
+              flexShrink: 0
+            }}>
+              👤
+            </div>
+            <div style={{ flex: 1 }}>
+              <h3 style={{
+                fontSize: '24px',
+                fontWeight: 700,
+                color: '#ffffff',
+                marginBottom: '8px',
+                marginTop: 0
+              }}>
+                Face ID Recognition
+              </h3>
+              <p style={{
+                fontSize: '16px',
+                color: '#9ca3af',
+                lineHeight: '1.6',
+                margin: 0
+              }}>
+                Look directly at the camera for facial recognition verification
+              </p>
+            </div>
+            <div style={{ fontSize: '24px', color: '#00d9ff' }}>→</div>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Screen 3.6: Biometric (Fingerprint) Verification
+function BiometricScreen({ onComplete, verified, setVerified }: { onComplete: () => void; verified: boolean; setVerified: (v: boolean) => void }) {
+  return (
+    <div style={{
+      height: '100vh',
+      width: '100vw',
+      background: 'radial-gradient(circle at top, rgba(56,189,248,0.16), transparent 55%), radial-gradient(circle at bottom, rgba(15,23,42,0.9), #020617)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px'
+    }}>
+      <div style={{ textAlign: 'center', maxWidth: '600px', width: '100%' }}>
+        <h2 style={{
+          fontSize: '32px',
+          fontWeight: 700,
+          color: '#ffffff',
+          marginBottom: '24px'
+        }}>
+          Fingerprint Verification
+        </h2>
+
+        {!verified && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            marginBottom: '40px',
+            padding: '16px 24px',
+            backgroundColor: 'rgba(0, 217, 255, 0.1)',
+            borderRadius: '12px',
+            border: '2px solid #00d9ff',
+            maxWidth: '500px',
+            margin: '0 auto 40px'
+          }}>
+            <div style={{ fontSize: '32px', animation: 'pulse 1.5s infinite' }}>👆</div>
+            <p style={{
+              fontSize: '18px',
+              color: '#ffffff',
+              fontWeight: 600,
+              margin: 0
+            }}>
+              Follow the animation to place your thumb
+            </p>
+          </div>
+        )}
+
+        {/* Fingerprint Scanner */}
+        <div style={{
+          width: '300px',
+          height: '300px',
+          margin: '0 auto 40px',
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{
+            width: '250px',
+            height: '250px',
+            borderRadius: '50%',
+            border: '6px solid #00d9ff',
+            backgroundColor: 'rgba(0, 217, 255, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            boxShadow: '0 0 40px rgba(0, 217, 255, 0.5)',
+            zIndex: 2
+          }}>
+            {verified ? (
+              <div style={{ fontSize: '80px', color: '#22c55e' }}>✓</div>
+            ) : (
+              <div style={{
+                width: '180px',
+                height: '180px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, #00d9ff 0%, #00d9ff 30%, transparent 30%)',
+                animation: 'pulse 2s infinite'
+              }} />
+            )}
+          </div>
+        </div>
+
+        {!verified ? (
+          <button
+            onClick={() => setVerified(true)}
+            style={{
+              padding: '16px 48px',
+              fontSize: '18px',
+              fontWeight: 600,
+              backgroundColor: '#00d9ff',
+              color: '#0a1929',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0, 217, 255, 0.4)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 217, 255, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 217, 255, 0.4)';
+            }}
+          >
+            Fingerprint Detected - Verify
+          </button>
+        ) : (
+          <div>
+            <div style={{
+              padding: '16px 32px',
+              backgroundColor: 'rgba(34, 197, 94, 0.2)',
+              color: '#22c55e',
+              borderRadius: '12px',
+              fontSize: '18px',
+              fontWeight: 600,
+              marginBottom: '24px',
+              display: 'inline-block'
+            }}>
+              ✓ Fingerprint Verified Successfully
+            </div>
+            <br />
+            <button
+              onClick={onComplete}
+              style={{
+                padding: '16px 48px',
+                fontSize: '18px',
+                fontWeight: 600,
+                backgroundColor: '#22c55e',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(34, 197, 94, 0.4)',
+                transition: 'all 0.3s ease',
+                animation: 'pulse 2s infinite'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(34, 197, 94, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.4)';
+              }}
+            >
+              Continue to Environment Scan
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Screen 3.7: Face ID Verification
+function FaceIdScreen({ onComplete, verified, setVerified }: { onComplete: () => void; verified: boolean; setVerified: (v: boolean) => void }) {
+  const [cameraAccess, setCameraAccess] = useState(false)
+  const [isScanning, setIsScanning] = useState(false)
+  const [cameraError, setCameraError] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const proceedTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Always auto-verify after 2 seconds regardless of camera status
+  useEffect(() => {
+    // Start the auto-verify timer immediately on mount
+    console.log('Face ID: Starting auto-verify timer (2 seconds)')
+    setIsScanning(true)
+    
+    timeoutRef.current = setTimeout(() => {
+      console.log('Face ID: Auto-verifying now')
+      setVerified(true)
+      setIsScanning(false)
+      // Auto-proceed after showing verified message for 1 second
+      proceedTimeoutRef.current = setTimeout(() => {
+        console.log('Face ID: Proceeding to next screen')
+        onComplete()
+      }, 1000)
+    }, 2000)
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+      if (proceedTimeoutRef.current) {
+        clearTimeout(proceedTimeoutRef.current)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Only run once on mount
+
+  // Request front-facing camera access (optional, doesn't block flow)
+  useEffect(() => {
+    const requestCamera = async () => {
+      try {
+        // Check if getUserMedia is available
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          console.log('getUserMedia is not supported')
+          setCameraError(true)
+          return
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }
+        })
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+          streamRef.current = stream
+          setCameraAccess(true)
+          setIsScanning(true)
+        }
+      } catch (error) {
+        console.log('Camera access denied or unavailable:', error)
+        setCameraError(true)
+        setCameraAccess(false)
+      }
+    }
+    
+    requestCamera()
+    
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
+
+  return (
+    <div style={{
+      height: '100vh',
+      width: '100vw',
+      background: 'radial-gradient(circle at top, rgba(56,189,248,0.16), transparent 55%), radial-gradient(circle at bottom, rgba(15,23,42,0.9), #020617)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px'
+    }}>
+      <div style={{ textAlign: 'center', maxWidth: '600px', width: '100%' }}>
+        <h2 style={{
+          fontSize: '32px',
+          fontWeight: 700,
+          color: '#ffffff',
+          marginBottom: '24px'
+        }}>
+          Face ID Verification
+        </h2>
+
+        {!verified && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            marginBottom: '40px',
+            padding: '16px 24px',
+            backgroundColor: 'rgba(0, 217, 255, 0.1)',
+            borderRadius: '12px',
+            border: '2px solid #00d9ff',
+            maxWidth: '500px',
+            margin: '0 auto 40px'
+          }}>
+            <div style={{ fontSize: '32px', animation: 'pulse 1.5s infinite' }}>👤</div>
+            <p style={{
+              fontSize: '18px',
+              color: '#ffffff',
+              fontWeight: 600,
+              margin: 0
+            }}>
+              {isScanning ? 'Scanning your face...' : cameraAccess ? 'Position your face within the frame' : cameraError ? 'Camera unavailable - Proceeding with verification...' : 'Requesting camera access...'}
+            </p>
+          </div>
+        )}
+
+        {/* Face ID Camera View */}
+        <div style={{
+          width: '400px',
+          height: '400px',
+          margin: '0 auto 40px',
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '20px',
+          overflow: 'hidden',
+          border: '6px solid #00d9ff',
+          boxShadow: '0 0 40px rgba(0, 217, 255, 0.5)',
+          backgroundColor: '#1a1a1a'
+        }}>
+          {verified ? (
+            <div style={{
+              fontSize: '120px',
+              color: '#22c55e',
+              animation: 'pulse 1s infinite'
+            }}>
+              ✓
+            </div>
+          ) : cameraAccess ? (
+            <>
+              {/* Real Camera Feed */}
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transform: 'scaleX(-1)' // Mirror for natural feel
+                }}
+              />
+              {/* Face Detection Frame Overlay */}
+              <div style={{
+                position: 'absolute',
+                width: '300px',
+                height: '380px',
+                border: '4px solid #00d9ff',
+                borderRadius: '16px',
+                pointerEvents: 'none',
+                animation: 'pulse 2s infinite',
+                boxShadow: '0 0 30px rgba(0, 217, 255, 0.6)'
+              }}>
+                {/* Face Outline Animation */}
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '180px',
+                  height: '220px',
+                  border: '3px dashed #00d9ff',
+                  borderRadius: '50%',
+                  animation: 'pulse 1.5s infinite',
+                  opacity: 0.7
+                }} />
+              </div>
+            </>
+          ) : (
+            <div style={{
+              width: '300px',
+              height: '380px',
+              border: '4px solid #00d9ff',
+              borderRadius: '16px',
+              position: 'relative',
+              animation: 'pulse 2s infinite',
+              boxShadow: '0 0 30px rgba(0, 217, 255, 0.6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#9ca3af',
+              fontSize: '16px'
+            }}>
+              Waiting for camera...
+            </div>
+          )}
+        </div>
+
+        {verified && (
+          <div>
+            <div style={{
+              padding: '16px 32px',
+              backgroundColor: 'rgba(34, 197, 94, 0.2)',
+              color: '#22c55e',
+              borderRadius: '12px',
+              fontSize: '18px',
+              fontWeight: 600,
+              marginBottom: '24px',
+              display: 'inline-block'
+            }}>
+              ✓ Face ID Verified Successfully
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -2708,8 +3302,8 @@ function ICScanScreen({ onComplete }: { onComplete: () => void }) {
 
 // Screen 6: Asset Distribution Hub
 function AssetDistributionScreen({ isMuslim, onComplete }: { isMuslim: boolean; onComplete: () => void }) {
-  const [beneficiaries, setBeneficiaries] = useState<Array<{ name: string; percentage: number }>>([])
-  const [newBeneficiary, setNewBeneficiary] = useState({ name: '', percentage: 0 })
+  const [beneficiaries, setBeneficiaries] = useState<Array<{ name: string; ic: string; percentage: number }>>([])
+  const [newBeneficiary, setNewBeneficiary] = useState({ name: '', ic: '', percentage: 0 })
 
   const faraidPortion = 66.67
   const wasiyyahPortion = 33.33
@@ -2719,10 +3313,10 @@ function AssetDistributionScreen({ isMuslim, onComplete }: { isMuslim: boolean; 
   const remaining = 100 - totalAllocated
 
   const handleAddBeneficiary = () => {
-    if (newBeneficiary.name && newBeneficiary.percentage > 0) {
+    if (newBeneficiary.name && newBeneficiary.ic && newBeneficiary.percentage > 0) {
       if (totalAllocated + newBeneficiary.percentage <= 100) {
         setBeneficiaries([...beneficiaries, newBeneficiary])
-        setNewBeneficiary({ name: '', percentage: 0 })
+        setNewBeneficiary({ name: '', ic: '', percentage: 0 })
       }
     }
   }
@@ -2957,6 +3551,12 @@ function AssetDistributionScreen({ isMuslim, onComplete }: { isMuslim: boolean; 
                         {ben.name}
                       </span>
                       <span style={{
+                        color: '#cbd5f5',
+                        fontSize: '12px'
+                      }}>
+                        {ben.ic}
+                      </span>
+                      <span style={{
                         color: '#00d9ff',
                         fontWeight: 700,
                         fontSize: '14px'
@@ -2974,6 +3574,28 @@ function AssetDistributionScreen({ isMuslim, onComplete }: { isMuslim: boolean; 
                     value={newBeneficiary.name}
                     onChange={(e) => setNewBeneficiary({ ...newBeneficiary, name: e.target.value })}
                     placeholder="Beneficiary name (e.g., Charity, Friend)"
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      backgroundColor: '#1e4976',
+                      border: '2px solid #4a5568',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#00d9ff'
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = '#4a5568'
+                    }}
+                  />
+                  <input
+                    type="text"
+                    value={newBeneficiary.ic}
+                    onChange={(e) => setNewBeneficiary({ ...newBeneficiary, ic: e.target.value })}
+                    placeholder="Beneficiary IC number"
                     style={{
                       width: '100%',
                       padding: '12px 16px',
@@ -3019,16 +3641,16 @@ function AssetDistributionScreen({ isMuslim, onComplete }: { isMuslim: boolean; 
                     />
                     <button
                       onClick={handleAddBeneficiary}
-                      disabled={remaining <= 0 || !newBeneficiary.name || newBeneficiary.percentage <= 0}
+                      disabled={remaining <= 0 || !newBeneficiary.name || !newBeneficiary.ic || newBeneficiary.percentage <= 0}
                       style={{
                         padding: '12px 20px',
                         borderRadius: '12px',
                         border: 'none',
-                        backgroundColor: remaining > 0 && newBeneficiary.name && newBeneficiary.percentage > 0 ? '#00d9ff' : '#4a5568',
-                        color: remaining > 0 && newBeneficiary.name && newBeneficiary.percentage > 0 ? '#0a1929' : '#718096',
+                        backgroundColor: remaining > 0 && newBeneficiary.name && newBeneficiary.ic && newBeneficiary.percentage > 0 ? '#00d9ff' : '#4a5568',
+                        color: remaining > 0 && newBeneficiary.name && newBeneficiary.ic && newBeneficiary.percentage > 0 ? '#0a1929' : '#718096',
                         fontSize: '14px',
                         fontWeight: 600,
-                        cursor: remaining > 0 && newBeneficiary.name && newBeneficiary.percentage > 0 ? 'pointer' : 'not-allowed'
+                        cursor: remaining > 0 && newBeneficiary.name && newBeneficiary.ic && newBeneficiary.percentage > 0 ? 'pointer' : 'not-allowed'
                       }}
                     >
                       Add
@@ -3261,6 +3883,145 @@ function AssetDistributionScreen({ isMuslim, onComplete }: { isMuslim: boolean; 
             )}
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Screen 6.5: Document Upload (Optional)
+function DocumentUploadScreen({ uploadedDocs, setUploadedDocs, onComplete }: { uploadedDocs: { [key: string]: boolean }; setUploadedDocs: (docs: { [key: string]: boolean }) => void; onComplete: () => void }) {
+  const handleUpload = (docType: string) => {
+    setUploadedDocs({ ...uploadedDocs, [docType]: true })
+  }
+
+  return (
+    <div style={{
+      height: '100vh',
+      width: '100vw',
+      background: 'radial-gradient(circle at top, rgba(56,189,248,0.16), transparent 55%), radial-gradient(circle at bottom, rgba(15,23,42,0.9), #020617)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px'
+    }}>
+      <div style={{ maxWidth: '800px', width: '100%', textAlign: 'center' }}>
+        <h2 style={{
+          fontSize: '32px',
+          fontWeight: 700,
+          color: '#ffffff',
+          marginBottom: '12px'
+        }}>
+          Document Evidence Upload
+        </h2>
+        <p style={{
+          fontSize: '18px',
+          color: '#9ca3af',
+          marginBottom: '8px'
+        }}>
+          Upload supporting documents for your assets
+        </p>
+        <p style={{
+          fontSize: '16px',
+          color: '#6b7280',
+          marginBottom: '40px',
+          fontStyle: 'italic'
+        }}>
+          (Optional - You may proceed without uploading documents)
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '40px' }}>
+          {[
+            { id: 'land', label: 'Land Title', icon: '🏠' },
+            { id: 'vehicle', label: 'Vehicle Grant', icon: '🚗' },
+            { id: 'bank', label: 'Bank Statement', icon: '💰' }
+          ].map((doc) => (
+            <div key={doc.id} style={{
+              backgroundColor: 'rgba(15, 23, 42, 0.6)',
+              border: '1px solid #1f2937',
+              borderRadius: '16px',
+              padding: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <span style={{ fontSize: '40px' }}>{doc.icon}</span>
+                <span style={{ fontSize: '20px', fontWeight: 600, color: '#ffffff' }}>{doc.label}</span>
+              </div>
+              {uploadedDocs[doc.id] ? (
+                <div style={{
+                  padding: '12px 24px',
+                  backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                  border: '1px solid #22c55e',
+                  color: '#22c55e',
+                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: 600
+                }}>
+                  ✓ Uploaded
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleUpload(doc.id)}
+                  style={{
+                    padding: '12px 32px',
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    backgroundColor: '#00d9ff',
+                    color: '#0a1929',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0, 217, 255, 0.4)',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 217, 255, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'none';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 217, 255, 0.4)';
+                  }}
+                >
+                  Upload File
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={onComplete}
+          style={{
+            width: '100%',
+            padding: '18px 32px',
+            fontSize: '18px',
+            fontWeight: 600,
+            backgroundColor: '#00d9ff',
+            color: '#0a1929',
+            border: 'none',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0, 217, 255, 0.4)',
+            transition: 'all 0.3s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 217, 255, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 217, 255, 0.4)';
+          }}
+        >
+          {Object.keys(uploadedDocs).length > 0 
+            ? `Continue to Executor Selection (${Object.keys(uploadedDocs).length} document${Object.keys(uploadedDocs).length > 1 ? 's' : ''} uploaded)`
+            : 'Continue to Executor Selection (Skip Documents)'
+          }
+        </button>
       </div>
     </div>
   )
